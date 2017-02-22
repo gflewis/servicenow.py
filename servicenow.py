@@ -227,8 +227,8 @@ class ServiceNow:
         if logger.isEnabledFor(logging.DEBUG):
             logResponse(logger, self.lastResponse, logging.DEBUG)
         if self.lastResponse.status_code != 200:
-            self.logRequest(logger, self.lastRequest, logging.INFO)
-            self.logResponse(logger, self.lastResponse, logging.INFO)
+            logRequest(logger, self.lastRequest, logging.INFO)
+            logResponse(logger, self.lastResponse, logging.INFO)
         self._setSession(self.lastResponse)
         return self.lastResponse
 
@@ -278,6 +278,8 @@ class Table():
         else:
             parms['sysparm_exclude_reference_link'] = 'true'
         self.response = self._request('GET', sys_id, parms)
+        if self.response.status_code == 401:
+            raise ServiceNowError('Unauthorized\n%s' % (self.response.json()))
         if self.response.status_code == 404:
             return None
         result = self.response.json()['result']
